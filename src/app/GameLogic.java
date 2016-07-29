@@ -7,20 +7,27 @@ package app;
 class GameLogic {
     private static boolean pencil;
     private static SudokuPuzzle puzzle;
+    private static SudokuPuzzle reset;
 
     static String getSquare (int x, int y) {
-        return "" + puzzle.getSquare(x,y);
+        int square = puzzle.getSquare(x, y);
+        return "" + ((square == 0) ? "" : square);
     }
 
-    static boolean isPencil() {
+    static boolean isPencil () {
         return pencil;
     }
 
-    static void togglePencil() {
+    static void togglePencil () {
         pencil = !isPencil();
     }
 
-    static void createPuzzle(int difficulty) {
+    static void createPuzzle (int difficulty) {
         puzzle = new SudokuPuzzle(difficulty);
+        reset = puzzle;
+    }
+
+    static void resetPuzzle () {
+        puzzle = reset;
     }
 }

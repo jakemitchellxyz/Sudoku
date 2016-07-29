@@ -327,7 +327,7 @@ class SudokuPuzzle {
      * @param bottomBound bottom edge of box
      * @param leftBound left edge of box
      */
-    private void fillBox(int topBound, int rightBound, int bottomBound, int leftBound) {
+    private void fillBox (int topBound, int rightBound, int bottomBound, int leftBound) {
         /*
         * All 9 numbers are present in box,
         * therefore, it is only reset once.
@@ -351,6 +351,20 @@ class SudokuPuzzle {
     }
 
     /**
+     *
+     * @return integer of number of solutions to the puzzle
+     */
+    private int solutions () {
+        return 0;
+    }
+
+    private void removeSquares (int difficulty) {
+        while(solutions() == 1) {
+            // do something
+        }
+    }
+
+    /**
      * Generate a completed puzzle, then remove items from it.
      *
      * @param difficulty 0 = easy, 1 = medium, 2 = hard
@@ -370,7 +384,8 @@ class SudokuPuzzle {
             return generate(difficulty);
         }
 
-        // TODO take away pieces of the completed puzzle
+        // Remove squares from the puzzle so the user can fill it in
+        removeSquares(difficulty);
 
         // Return the puzzle we've been creating
         return puzzle;

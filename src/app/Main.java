@@ -19,6 +19,7 @@ public class Main extends Application {
 
         // Create Window
         window.setTitle("Sudoku");
+        window.resizableProperty().setValue(false);
         window.setScene(Scenes.getScene("MainMenu"));
         window.show();
     }

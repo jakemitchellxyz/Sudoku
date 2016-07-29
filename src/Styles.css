@@ -1,0 +1,31 @@
+.root {
+    -fx-background-color: #efefef;
+}
+
+.square {
+    -fx-background-color: white;
+    -fx-background-radius: 0;
+    -fx-font-size: 18px;
+    -fx-text-fill: black;
+}
+
+.square:hover {
+    -fx-background-color: #efefef;
+    -fx-cursor: hand;
+}
+
+.numbers {
+    -fx-background-color: #2f4b8f;
+    -fx-background-radius: 0;
+    -fx-font-size: 20px;
+    -fx-text-fill: white;
+}
+
+.numbers:hover {
+    -fx-background-color: #627EC2;
+    -fx-cursor: hand;
+}
+
+.numbers:focused {
+    -fx-background-color: #4965A9;
+}
