@@ -36,19 +36,6 @@ public class Filler {
     }
 
     /**
-     * Reset the puzzle to all 0s
-     */
-    private void resetPuzzle() {
-        // For each column
-        for (int x = 0; x < 9; x++) {
-            // For each row
-            for (int y = 0; y < 9; y++) {
-                puzzle.setSquare(x, y, 0);
-            }
-        }
-    }
-
-    /**
      * Fill columns with numbers.
      *
      * @param leftBound left-most column
@@ -248,7 +235,7 @@ public class Filler {
      */
     public void fillPuzzle () {
         // Reset puzzle to all 0s
-        this.resetPuzzle();
+        puzzle.resetPuzzle();
 
         // Fill in the first box so we have somewhere to start.
         this.fillBox(0, 3, 3, 0);
