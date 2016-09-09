@@ -125,8 +125,31 @@ public class Solver {
         return true;
     }
 
-    public boolean solve () {
+    /**
+     * Check if the puzzle has been solved.
+     *
+     * @return boolean of whether puzzle is solved
+     */
+    private boolean isSolved () {
+        int total = 0;
+
         // For each column
+        for (int x = 0; x < 9; x++) {
+            // For each row
+            for (int y = 0; y < 9; y++) {
+                // Add the value of the square to the total
+                total += puzzle.getSquare(x, y);
+            }
+        }
+
+        // All numbers added together should be 405
+        return (total == 405);
+    }
+
+    public boolean solve () {
+
+        // TODO: Add notes to every empty square
+//        // For each column
 //        for (int x = 0; x < 9; x++) {
 //            // For each row
 //            for (int y = 0; y < 9; y++) {
@@ -141,6 +164,9 @@ public class Solver {
 //                }
 //            }
 //        }
-        return false;
+
+        // TODO: Insert the appropriate numbers into the puzzle and update notes until solved
+
+        return this.isSolved();
     }
 }

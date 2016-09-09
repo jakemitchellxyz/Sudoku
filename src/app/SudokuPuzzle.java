@@ -60,10 +60,19 @@ class SudokuPuzzle {
     }
 
     /**
+     * Set all puzzle values at once
+     *
+     * @param vals all puzzle values
+     */
+    protected void setPuzzle(int[][] vals) {
+        this.puzzle = vals;
+    }
+
+    /**
      * Reset the puzzle to all 0s
      */
     protected void resetPuzzle() {
-        this.puzzle = new int[][] {
+        this.setPuzzle(new int[][] {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -73,7 +82,7 @@ class SudokuPuzzle {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0}
-        };
+        });
     }
 
     /**
