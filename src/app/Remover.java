@@ -39,7 +39,7 @@ public class Remover {
 
             // Keep generating a random coordinate until we choose a square that is not in the removedSquares list
             do {
-                coord = new int[]{ r.nextInt(9) + 1, r.nextInt(9) + 1 };
+                coord = new int[]{ r.nextInt(9), r.nextInt(9) };
             } while (this.removedSquares.indexOf(coord) > -1);
 
             // Empty the square
@@ -50,7 +50,6 @@ public class Remover {
             this.removedSquares.add(coord);
 
         // As long as it can be solved
-        } while(copy.solver.solve());
-
+        } while(copy.solver.solve(removedSquares));
     }
 }

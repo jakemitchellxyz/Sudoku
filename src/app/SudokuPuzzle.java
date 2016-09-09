@@ -5,6 +5,7 @@ package app;
  * License: MIT
  */
 class SudokuPuzzle {
+    public int[][] solution;
     private int[][] puzzle;
     public Solver solver;
 
@@ -95,6 +96,9 @@ class SudokuPuzzle {
 
         // generate a new, completed puzzle
         filler.fillPuzzle();
+
+        // Set the solution before we start removing values
+        this.solution = this.puzzle;
 
         // Remove squares from the puzzle so the user can fill them in
         remover.removeSquares();
