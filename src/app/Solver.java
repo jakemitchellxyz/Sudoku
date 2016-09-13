@@ -13,9 +13,10 @@ public class Solver {
     private SudokuPuzzle puzzle;
     private SudokuPuzzle tempPuzzle;
     private int difficulty;
+
     private HashMap<int[], ArrayList<Integer>> notes = new HashMap<>();
     private ArrayList<int[]> emptySquares;
-    private static final HashMap<int[], Integer> boxes;
+    private static final HashMap<String, Integer> boxes;
 
     /**
      * Hard-Coded value of the boxes. These can never change, so it's faster and safer to hard-code them in.
@@ -24,35 +25,35 @@ public class Solver {
     static {
         boxes = new HashMap<>();
 
-        boxes.put(new int[]{0,0}, 0);   boxes.put(new int[]{3,0}, 1);   boxes.put(new int[]{6,0}, 2);
-        boxes.put(new int[]{0,1}, 0);   boxes.put(new int[]{3,1}, 1);   boxes.put(new int[]{6,1}, 2);
-        boxes.put(new int[]{0,2}, 0);   boxes.put(new int[]{3,2}, 1);   boxes.put(new int[]{6,2}, 2);
-        boxes.put(new int[]{1,0}, 0);   boxes.put(new int[]{4,0}, 1);   boxes.put(new int[]{7,0}, 2);
-        boxes.put(new int[]{1,1}, 0);   boxes.put(new int[]{4,1}, 1);   boxes.put(new int[]{7,1}, 2);
-        boxes.put(new int[]{1,2}, 0);   boxes.put(new int[]{4,2}, 1);   boxes.put(new int[]{7,2}, 2);
-        boxes.put(new int[]{2,0}, 0);   boxes.put(new int[]{5,0}, 1);   boxes.put(new int[]{8,0}, 2);
-        boxes.put(new int[]{2,1}, 0);   boxes.put(new int[]{5,1}, 1);   boxes.put(new int[]{8,1}, 2);
-        boxes.put(new int[]{2,2}, 0);   boxes.put(new int[]{5,2}, 1);   boxes.put(new int[]{8,2}, 2);
+        boxes.put("00", 0);   boxes.put("30", 1);   boxes.put("60", 2);
+        boxes.put("01", 0);   boxes.put("31", 1);   boxes.put("61", 2);
+        boxes.put("02", 0);   boxes.put("32", 1);   boxes.put("62", 2);
+        boxes.put("10", 0);   boxes.put("40", 1);   boxes.put("70", 2);
+        boxes.put("11", 0);   boxes.put("41", 1);   boxes.put("71", 2);
+        boxes.put("12", 0);   boxes.put("42", 1);   boxes.put("72", 2);
+        boxes.put("20", 0);   boxes.put("50", 1);   boxes.put("80", 2);
+        boxes.put("21", 0);   boxes.put("51", 1);   boxes.put("81", 2);
+        boxes.put("22", 0);   boxes.put("52", 1);   boxes.put("82", 2);
 
-        boxes.put(new int[]{0,3}, 3);   boxes.put(new int[]{3,3}, 4);   boxes.put(new int[]{6,3}, 5);
-        boxes.put(new int[]{0,4}, 3);   boxes.put(new int[]{3,4}, 4);   boxes.put(new int[]{6,4}, 5);
-        boxes.put(new int[]{0,5}, 3);   boxes.put(new int[]{3,5}, 4);   boxes.put(new int[]{6,5}, 5);
-        boxes.put(new int[]{1,3}, 3);   boxes.put(new int[]{4,3}, 4);   boxes.put(new int[]{7,3}, 5);
-        boxes.put(new int[]{1,4}, 3);   boxes.put(new int[]{4,4}, 4);   boxes.put(new int[]{7,4}, 5);
-        boxes.put(new int[]{1,5}, 3);   boxes.put(new int[]{4,5}, 4);   boxes.put(new int[]{7,5}, 5);
-        boxes.put(new int[]{2,3}, 3);   boxes.put(new int[]{5,3}, 4);   boxes.put(new int[]{8,3}, 5);
-        boxes.put(new int[]{2,4}, 3);   boxes.put(new int[]{5,4}, 4);   boxes.put(new int[]{8,4}, 5);
-        boxes.put(new int[]{2,5}, 3);   boxes.put(new int[]{5,5}, 4);   boxes.put(new int[]{8,5}, 5);
+        boxes.put("03", 3);   boxes.put("33", 4);   boxes.put("63", 5);
+        boxes.put("04", 3);   boxes.put("34", 4);   boxes.put("64", 5);
+        boxes.put("05", 3);   boxes.put("35", 4);   boxes.put("65", 5);
+        boxes.put("13", 3);   boxes.put("43", 4);   boxes.put("73", 5);
+        boxes.put("14", 3);   boxes.put("44", 4);   boxes.put("74", 5);
+        boxes.put("15", 3);   boxes.put("45", 4);   boxes.put("75", 5);
+        boxes.put("23", 3);   boxes.put("53", 4);   boxes.put("83", 5);
+        boxes.put("24", 3);   boxes.put("54", 4);   boxes.put("84", 5);
+        boxes.put("25", 3);   boxes.put("55", 4);   boxes.put("85", 5);
 
-        boxes.put(new int[]{0,6}, 6);   boxes.put(new int[]{3,6}, 7);   boxes.put(new int[]{6,6}, 8);
-        boxes.put(new int[]{0,7}, 6);   boxes.put(new int[]{3,7}, 7);   boxes.put(new int[]{6,7}, 8);
-        boxes.put(new int[]{0,8}, 6);   boxes.put(new int[]{3,8}, 7);   boxes.put(new int[]{6,8}, 8);
-        boxes.put(new int[]{1,6}, 6);   boxes.put(new int[]{4,6}, 7);   boxes.put(new int[]{7,6}, 8);
-        boxes.put(new int[]{1,7}, 6);   boxes.put(new int[]{4,7}, 7);   boxes.put(new int[]{7,7}, 8);
-        boxes.put(new int[]{1,8}, 6);   boxes.put(new int[]{4,8}, 7);   boxes.put(new int[]{7,8}, 8);
-        boxes.put(new int[]{2,6}, 6);   boxes.put(new int[]{5,6}, 7);   boxes.put(new int[]{8,6}, 8);
-        boxes.put(new int[]{2,7}, 6);   boxes.put(new int[]{5,7}, 7);   boxes.put(new int[]{8,7}, 8);
-        boxes.put(new int[]{2,8}, 6);   boxes.put(new int[]{5,8}, 7);   boxes.put(new int[]{8,8}, 8);
+        boxes.put("06", 6);   boxes.put("36", 7);   boxes.put("66", 8);
+        boxes.put("07", 6);   boxes.put("37", 7);   boxes.put("67", 8);
+        boxes.put("08", 6);   boxes.put("38", 7);   boxes.put("68", 8);
+        boxes.put("16", 6);   boxes.put("46", 7);   boxes.put("76", 8);
+        boxes.put("17", 6);   boxes.put("47", 7);   boxes.put("77", 8);
+        boxes.put("18", 6);   boxes.put("48", 7);   boxes.put("78", 8);
+        boxes.put("26", 6);   boxes.put("56", 7);   boxes.put("86", 8);
+        boxes.put("27", 6);   boxes.put("57", 7);   boxes.put("87", 8);
+        boxes.put("28", 6);   boxes.put("58", 7);   boxes.put("88", 8);
     }
 
     /**
@@ -78,12 +79,12 @@ public class Solver {
     /**
      * Get all coordinates in this box
      * @param box number of the box we are in
-     * @return ArrayList of the coordinates
+     * @return ArrayList of the coordinates (String)
      */
-    private ArrayList<int[]> getAllInBox(int box) {
-        ArrayList<int[]> ret = new ArrayList<>();
+    private ArrayList<String> getAllInBox(int box) {
+        ArrayList<String> ret = new ArrayList<>();
 
-        for(int[] key : boxes.keySet()) {
+        for(String key : boxes.keySet()) {
             if (boxes.get(key) == box) {
                 ret.add(key);
             }
@@ -115,17 +116,9 @@ public class Solver {
             }
         }
 
-        // Check if number exists in the 3x3 box.
-        System.out.println("[ " + x + ", " + y + " ]");
-
-        for (int[] coord : boxes.keySet()) {
-            System.out.println("[ " + coord[0] + ", " + coord[1] + " ]");
-        }
-
-        System.out.println(boxes.get(new int[]{ x, y }));
-
-        for (int[] square : getAllInBox(boxes.get(new int[]{ x, y }))) {
-            if (this.puzzle.getSquare(square[0], square[1]) == num) {
+        for (String square : getAllInBox(boxes.get("" + x + y))) {
+            String[] coord = square.split("");
+            if (this.puzzle.getSquare(Integer.parseInt(coord[0]), Integer.parseInt(coord[1])) == num) {
                 return false;
             }
         }
@@ -169,7 +162,7 @@ public class Solver {
         // If we added a square with exactly 1 note
         if(possibleSquares.get(1).size() > 0) {
             // Return the fuck out of it
-            return possibleSquares.get(1).get(0);
+            return possibleSquares.get(1).iterator().next();
         } else {
             /*
              * Can this next bit be an anonymous function somehow? Or even a Lambda expression?
