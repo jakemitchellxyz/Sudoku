@@ -1,5 +1,5 @@
 .root {
-    -fx-background-color: #efefef;
+    -fx-background-color: #dddddd;
 }
 
 .square {
@@ -10,7 +10,7 @@
 }
 
 .square:hover {
-    -fx-background-color: #efefef;
+    -fx-background-color: #dddddd;
     -fx-cursor: hand;
 }
 

@@ -28,7 +28,7 @@ public class Solver {
         for(int x = 0; x < 9; x++) {
             // For each row
             for(int y = 0; y < 9; y++) {
-                // Magical function by Yunze li
+                // Magical function with help from Yunze li
                 box = (int) (Math.ceil((x + 1) / 3.0) + 3 * Math.ceil((y + 1) / 3.0) - 4);
 
                 // Insert coordinate and box into HashMap
@@ -142,9 +142,9 @@ public class Solver {
         }
 
         // If we added a square with exactly 1 note
-        if(possibleSquares.get(1).size() > 0) {
+        if(possibleSquares.containsKey(1) && possibleSquares.get(1).size() > 0) {
             // Return the fuck out of it
-            return possibleSquares.get(1).iterator().next();
+            return possibleSquares.get(1).get(0);
         } else {
             /*
              * Can this next bit be an anonymous function somehow? Or even a Lambda expression?
@@ -159,7 +159,7 @@ public class Solver {
 
             // If we have any squares with more than one note,
             if(ret) {
-                // TODO: flag impossible
+                // TODO: find a way of declaring impossible.
                 return new int[]{};
             } else {
                 // Otherwise, we have completed the puzzle
@@ -176,9 +176,9 @@ public class Solver {
      */
     private void removeNote (List<Integer> square, int value) {
         // If this value is in the notes,
-        if(notes.get(square).indexOf(value) > -1) {
+        if(this.notes.get(square).indexOf(value) > -1) {
             // Remove it
-            notes.get(square).remove(notes.get(square).indexOf(value));
+            this.notes.get(square).remove(this.notes.get(square).indexOf(value));
         }
     }
 
@@ -194,25 +194,17 @@ public class Solver {
         List<Integer> emptySquare;
 
         // Remove note from this square
-        this.removeNote(coord, val);
+        this.emptySquares.remove(coord);
 
         // For each empty square
         Iterator<List<Integer>> emptyIt = this.emptySquares.iterator();
         while(emptyIt.hasNext()) {
             emptySquare = emptyIt.next();
 
-            // If it is in this column,
-            if(emptySquare.get(0) == x) {
-                // Remove it
-                this.removeNote(Arrays.asList(x, emptySquare.get(1)), val);
-            // Else, if it is in this row
-            } else if (emptySquare.get(1) == y) {
-                // Remove it
-                this.removeNote(Arrays.asList(emptySquare.get(0), y), val);
-            }
+            if ((emptySquare.get(0) == x) // If in this column or
+                    || (emptySquare.get(1) == y) // If in this row or
+                    || (BOXES.get(coord) == BOXES.get(emptySquare))) { // If in this box,
 
-            // If it is in the same box
-            if (BOXES.get(coord) == BOXES.get(emptySquare)) {
                 // Remove it
                 this.removeNote(emptySquare, val);
             }
@@ -256,8 +248,10 @@ public class Solver {
      * Inserts numbers, based on the notes, into the puzzle
      */
     private void insertSquares () {
+        // Get a square with exactly one note.
         int[] square = this.scanner();
 
+        // If we have one,
         if(square.length > 0) {
             // Insert the value of the square into the puzzle
             this.tempPuzzle.setSquare(square[0], square[1], square[2]);

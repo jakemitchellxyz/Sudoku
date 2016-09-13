@@ -1,6 +1,7 @@
 package app;
 
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +33,14 @@ public class Remover {
         Random r = new Random();
         List<Integer> coord;
 
+        // Print answer to console.
+        for (int[] row : this.puzzle.getPuzzle()) {
+            for (int col : row) {
+                System.out.print(col + " ");
+            }
+            System.out.println();
+        }
+
         // Remove a square from the puzzle
         do {
             // Set the original puzzle to be the modified version
@@ -49,6 +58,6 @@ public class Remover {
             this.removedSquares.add(coord);
 
         // As long as it can be solved
-        } while(copy.solver.solve(removedSquares));
+        } while(copy.solver.solve(this.removedSquares));
     }
 }
