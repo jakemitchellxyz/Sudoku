@@ -2,6 +2,8 @@ package app;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -10,8 +12,7 @@ import java.util.Random;
  */
 public class Remover {
     private SudokuPuzzle puzzle;
-    private ArrayList<int[]> removedSquares = new ArrayList<>();
-
+    private ArrayList<List<Integer>> removedSquares = new ArrayList<>();
 
     /**
      * Constructor
@@ -29,22 +30,20 @@ public class Remover {
         // Copy the puzzle to avoid messing it up
         SudokuPuzzle copy = new SudokuPuzzle(this.puzzle);
         Random r = new Random();
-        int[] coord;
+        List<Integer> coord;
 
         // Remove a square from the puzzle
         do {
-
             // Set the original puzzle to be the modified version
             this.puzzle.setPuzzle(copy.getPuzzle());
 
             // Keep generating a random coordinate until we choose a square that is not in the removedSquares list
             do {
-                coord = new int[]{ r.nextInt(9), r.nextInt(9) };
+                coord = Arrays.asList(r.nextInt(9), r.nextInt(9));
             } while (this.removedSquares.indexOf(coord) > -1);
 
             // Empty the square
-            System.out.println("[ " + coord[0] + ", " + coord[1] + " ]");
-            copy.setSquare(coord[0], coord[1], 0);
+            copy.setSquare(coord.get(0), coord.get(1), 0);
 
             // Add coordinates to the removedSquares list
             this.removedSquares.add(coord);
