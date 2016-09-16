@@ -1,10 +1,6 @@
 package app;
 
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -13,7 +9,7 @@ import java.util.Random;
  */
 public class Remover {
     private SudokuPuzzle puzzle;
-    private ArrayList<List<Integer>> removedSquares = new ArrayList<>();
+    private ArrayList<Square> removedSquares = new ArrayList<>();
 
     /**
      * Constructor
@@ -31,15 +27,9 @@ public class Remover {
         // Copy the puzzle to avoid messing it up
         SudokuPuzzle copy = new SudokuPuzzle(this.puzzle);
         Random r = new Random();
-        List<Integer> coord;
+        Square square;
 
-        // Print answer to console.
-        for (int[] row : this.puzzle.getPuzzle()) {
-            for (int col : row) {
-                System.out.print(col + " ");
-            }
-            System.out.println();
-        }
+        System.out.println(this.puzzle);
 
         // Remove a square from the puzzle
         do {
@@ -48,14 +38,14 @@ public class Remover {
 
             // Keep generating a random coordinate until we choose a square that is not in the removedSquares list
             do {
-                coord = Arrays.asList(r.nextInt(9), r.nextInt(9));
-            } while (this.removedSquares.indexOf(coord) > -1);
+                square = new Square(r.nextInt(9), r.nextInt(9));
+            } while (this.removedSquares.indexOf(square) > -1);
 
             // Empty the square
-            copy.setSquare(coord.get(0), coord.get(1), 0);
+            copy.setSquare(square, 0);
 
             // Add coordinates to the removedSquares list
-            this.removedSquares.add(coord);
+            this.removedSquares.add(square);
 
         // As long as it can be solved
         } while(copy.solver.solve(this.removedSquares));

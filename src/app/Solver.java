@@ -1,6 +1,8 @@
 package app;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Created by Jake Mitchell on 8 Sept, 2016.
@@ -11,31 +13,10 @@ public class Solver {
     private SudokuPuzzle puzzle;
     private SudokuPuzzle tempPuzzle;
     private int difficulty;
+    private boolean solvable = true;
 
-    private HashMap<List<Integer>, ArrayList<Integer>> notes = new HashMap<>();
-    private ArrayList<List<Integer>> emptySquares;
-    private static final HashMap<List<Integer>, Integer> BOXES;
-
-    /**
-     * Hard-Coded value of the BOXES. These can never change, so it's faster and safer to hard-code them in.
-     * Format: Coordinate of square => box # it resides in
-     */
-    static {
-        BOXES = new HashMap<>();
-        int box;
-
-        // For each column
-        for(int x = 0; x < 9; x++) {
-            // For each row
-            for(int y = 0; y < 9; y++) {
-                // Magical function with help from Yunze li
-                box = (int) (Math.ceil((x + 1) / 3.0) + 3 * Math.ceil((y + 1) / 3.0) - 4);
-
-                // Insert coordinate and box into HashMap
-                BOXES.put(Collections.unmodifiableList(Arrays.asList(x, y)), box);
-            }
-        }
-    }
+    private HashMap<Square, ArrayList<Integer>> notes = new HashMap<>();
+    private ArrayList<Square> emptySquares;
 
     /**
      * Constructor
@@ -54,53 +35,34 @@ public class Solver {
      * @return int of difficulty
      */
     public int getDifficulty() {
-        return difficulty;
-    }
-
-    /**
-     * Get all coordinates in this box.
-     *
-     * @param box number of the box we are in
-     * @return ArrayList of the coordinates (String)
-     */
-    private ArrayList<List<Integer>> getAllInBox(int box) {
-        ArrayList<List<Integer>> ret = new ArrayList<>();
-
-        for(List<Integer> key : BOXES.keySet()) {
-            if (BOXES.get(key) == box) {
-                ret.add(key);
-            }
-        }
-
-        return ret;
+        return this.difficulty;
     }
 
     /**
      * Boolean of whether a number is valid to insert.
      *
      * @param num value to query
-     * @param x column of square - 1
-     * @param y row of square - 1
+     * @param square Square object of location
      * @return boolean of validity
      */
-    public boolean isValid (int num, int x, int y) {
+    public boolean isValid (int num, Square square) {
         // Check if number exists in column.
-        for (int i = 0; i < y; i++) {
-            if(puzzle.getSquare(x, i) == num) {
+        for (int i = 0; i < square.getY(); i++) {
+            if(puzzle.getSquare(square.getX(), i) == num) {
                 return false;
             }
         }
 
         // Check if number exists in row.
-        for (int i = 0; i < x; i++) {
-            if (puzzle.getSquare(i, y) == num) {
+        for (int i = 0; i < square.getX(); i++) {
+            if (puzzle.getSquare(i, square.getY()) == num) {
                 return false;
             }
         }
 
         // Check if in box
-        for (List<Integer> square : getAllInBox(BOXES.get(Arrays.asList(x, y)))) {
-            if (this.puzzle.getSquare(square.get(0), square.get(1)) == num) {
+        for (Square other : square.getAllInBox()) {
+            if (this.puzzle.getSquare(other) == num) {
                 return false;
             }
         }
@@ -114,14 +76,14 @@ public class Solver {
      *
      * @return [ x, y, val ]
      */
-    private int[] scanner () {
-        HashMap<Integer, ArrayList<int[]>> possibleSquares = new HashMap<Integer, ArrayList<int[]>>();
+    private Square scanner () throws PuzzleUnsolvableException {
+        HashMap<Integer, ArrayList<Square>> possibleSquares = new HashMap<Integer, ArrayList<Square>>();
 
         ArrayList<Integer> theseNotes;
-        List<Integer> square;
+        Square square;
 
         // For each empty square
-        Iterator<List<Integer>> emptyIt = this.emptySquares.iterator();
+        Iterator<Square> emptyIt = this.emptySquares.iterator();
         while(emptyIt.hasNext()) {
             square = emptyIt.next();
 
@@ -131,11 +93,11 @@ public class Solver {
             // If we have already inserted a square with this # of notes
             if (possibleSquares.containsKey(theseNotes.size())) {
                 // Add this one to that list
-                possibleSquares.get(theseNotes.size()).add(new int[]{ square.get(0), square.get(1), theseNotes.get(0) });
+                possibleSquares.get(theseNotes.size()).add(square);
             } else {
                 // Otherwise, create a new list
-                ArrayList<int[]> list = new ArrayList<int[]>();
-                list.add(new int[]{ square.get(0), square.get(1), theseNotes.get(0) });
+                ArrayList<Square> list = new ArrayList<Square>();
+                list.add(square);
 
                 possibleSquares.put(theseNotes.size(), list);
             }
@@ -146,24 +108,28 @@ public class Solver {
             // Return the fuck out of it
             return possibleSquares.get(1).get(0);
         } else {
-            /*
-             * Can this next bit be an anonymous function somehow? Or even a Lambda expression?
-             */
-            boolean ret = false;
-            for (int size : possibleSquares.keySet()) {
-                if (possibleSquares.get(size).size() > 0) {
-                    ret = true;
+            // Impossiblity flag
+            boolean impossible = false;
+
+            // For each # of notes in a square,
+            for (ArrayList<Square> squaresWithNotes : possibleSquares.values()) {
+                // For each square,
+                for (Square sq : squaresWithNotes) {
+                    // If a square exists,
+                    if (sq != null) {
+                        //
+                        impossible = true;
+                    }
                 }
             }
-            /* End Imaginary anonymous function */
 
             // If we have any squares with more than one note,
-            if(ret) {
-                // TODO: find a way of declaring impossible.
-                return new int[]{};
+            if(impossible) {
+                // Throw an error to exit back to the solver and exit the solver
+                throw new PuzzleUnsolvableException("Puzzle is not solvable.");
             } else {
                 // Otherwise, we have completed the puzzle
-                return new int[]{};
+                return null;
             }
         }
     }
@@ -171,42 +137,39 @@ public class Solver {
     /**
      * Remove a number from the notes in a specific square.
      *
+     * @param note value to remove from the notes
      * @param square coordinates of the square to remove notes from
-     * @param value value to remove from the notes
      */
-    private void removeNote (List<Integer> square, int value) {
+    private void removeNote (int note, Square square) {
+        ArrayList<Integer> theseNotes = this.notes.get(square);
+
         // If this value is in the notes,
-        if(this.notes.get(square).indexOf(value) > -1) {
+        if(theseNotes.indexOf(note) > -1) {
             // Remove it
-            this.notes.get(square).remove(this.notes.get(square).indexOf(value));
+            theseNotes.remove(theseNotes.indexOf(note));
         }
     }
 
     /**
      * Updates the notes when a number has been inserted into the puzzle.
      *
-     * @param x column of the inserted number
-     * @param y row of inserted number
-     * @param val value of inserted number
+     * @param square square that was inserted
+     * @param note value of note to insert
      */
-    private void update(int x, int y, int val) {
-        List<Integer> coord = Arrays.asList(x, y);
-        List<Integer> emptySquare;
+    private void update(Square square, int note) {
+        Square emptySquare;
 
         // Remove note from this square
-        this.emptySquares.remove(coord);
+        this.emptySquares.remove(square);
 
         // For each empty square
-        Iterator<List<Integer>> emptyIt = this.emptySquares.iterator();
+        Iterator<Square> emptyIt = this.emptySquares.iterator();
         while(emptyIt.hasNext()) {
             emptySquare = emptyIt.next();
 
-            if ((emptySquare.get(0) == x) // If in this column or
-                    || (emptySquare.get(1) == y) // If in this row or
-                    || (BOXES.get(coord) == BOXES.get(emptySquare))) { // If in this box,
-
-                // Remove it
-                this.removeNote(emptySquare, val);
+            // If in this column, row, or box, remove it
+            if (emptySquare.affects(square)) {
+                this.removeNote(note, emptySquare);
             }
         }
     }
@@ -215,28 +178,28 @@ public class Solver {
      * Add all notes to all empty squares.
      */
     private void addAllNotes() {
-        List<Integer> square;
+        Square square;
 
         // For each empty square
-        Iterator<List<Integer>> emptyIt = this.emptySquares.iterator();
+        Iterator<Square> emptyIt = this.emptySquares.iterator();
         while(emptyIt.hasNext()) {
             square = emptyIt.next();
 
             // If square is empty
-            if (this.tempPuzzle.getSquare(square.get(0), square.get(1)) == 0) {
+            if (this.tempPuzzle.getSquare(square) == 0) {
                 // Add all numbers 1-9 to the notes
-                for (int i = 1; i < 10; i++) {
-                    if (this.isValid(i, square.get(0), square.get(1))) {
+                for (int note = 1; note < 10; note++) {
+                    if (this.isValid(note, square)) {
                         // If this square has already been set,
                         if (notes.containsKey(square)) {
                             // Add to it
-                            notes.get(square).add(i);
+                            notes.get(square).add(note);
                         } else {
                             // Otherwise, create a new ArrayList for it
                             ArrayList<Integer> list = new ArrayList<>();
-                            list.add(i);
+                            list.add(note);
 
-                            notes.put(Collections.unmodifiableList(square), list);
+                            notes.put(square, list);
                         }
                     }
                 }
@@ -249,15 +212,26 @@ public class Solver {
      */
     private void insertSquares () {
         // Get a square with exactly one note.
-        int[] square = this.scanner();
+        Square square;
+
+        try {
+            square = this.scanner();
+        } catch (PuzzleUnsolvableException e) {
+            // Flag the puzzle impossible
+            this.solvable = false;
+            return;
+        }
 
         // If we have one,
-        if(square.length > 0) {
+        if(square != null) {
+            // Get the value of the first (only) note in the square
+            int firstNote = this.notes.get(square).get(0);
+
             // Insert the value of the square into the puzzle
-            this.tempPuzzle.setSquare(square[0], square[1], square[2]);
+            this.tempPuzzle.setSquare(square, firstNote);
 
             // Update the notes to reflect the change
-            this.update(square[0], square[1], square[2]);
+            this.update(square, firstNote);
 
             // Since we made a change, repeat this function
             this.insertSquares();
@@ -270,6 +244,10 @@ public class Solver {
      * @return boolean of whether puzzle is solved
      */
     private boolean isSolved () {
+        // Return false if we've been flagged impossible
+        if (!this.solvable)
+            return false;
+
         int total = 0;
 
         // For each column
@@ -291,7 +269,7 @@ public class Solver {
      * @param removedSquares list of squares that have been removed
      * @return whether or not the puzzle has been solved
      */
-    public boolean solve (ArrayList<List<Integer>> removedSquares) {
+    public boolean solve (ArrayList<Square> removedSquares) {
         this.emptySquares = removedSquares;
         this.tempPuzzle = new SudokuPuzzle(this.puzzle);
 

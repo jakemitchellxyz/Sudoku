@@ -30,25 +30,34 @@ class SudokuPuzzle {
     }
 
     /**
-     * Retrieve an individual square.
+     * Retrieve an individual square via coordinates.
      *
      * @param x column of square - 1
      * @param y row of square - 1
      * @return int value of the square
      */
     public int getSquare (int x, int y) {
-        return puzzle[y][x];
+        return this.puzzle[y][x];
+    }
+
+    /**
+     * Retrieve an individual square view Square object.
+     *
+     * @param square square object of location
+     * @return int value of the square
+     */
+    public int getSquare (Square square) {
+        return this.getSquare(square.getX(), square.getY());
     }
 
     /**
      * Set the value of a single square.
      *
-     * @param x column of square - 1
-     * @param y row of square - 1
+     * @param square Square object of coordinates
      * @param val value to set the square to
      */
-    public void setSquare (int x, int y, int val) {
-        puzzle[y][x] = val;
+    public void setSquare (Square square, int val) {
+        this.puzzle[square.getY()][square.getX()] = val;
     }
 
     /**
@@ -57,7 +66,7 @@ class SudokuPuzzle {
      * @return returns entire puzzle numbers
      */
     public int[][] getPuzzle() {
-        return puzzle;
+        return this.puzzle;
     }
 
     /**
@@ -102,5 +111,38 @@ class SudokuPuzzle {
 
         // Remove squares from the puzzle so the user can fill them in
         remover.removeSquares();
+    }
+
+    @Override
+    public String toString() {
+        String ret = "\nSUDOKU PUZZLE:\n-------------------------\n";
+        String rightBorder;
+        String bottomBorder;
+        int[] row;
+        int col;
+
+        // For each row
+        for (int r = 0; r < this.getPuzzle().length; r++) {
+            row = this.getPuzzle()[r];
+
+            ret += "| ";
+
+            // For each column
+            for (int c = 0; c < row.length; c++) {
+                col = row[c];
+
+                // Calculate if there should be a border
+                rightBorder = ((c + 1) % 3) == 0 ? " | " : " ";
+
+                ret += col + rightBorder;
+            }
+
+            // Calculate if there should be a border
+            bottomBorder = ((r + 1) % 3) == 0 ? "\n-------------------------" : "";
+
+            ret += bottomBorder + "\n";
+        }
+
+        return ret;
     }
 }

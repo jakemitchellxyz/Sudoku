@@ -46,6 +46,7 @@ public class Filler {
     private boolean fillColumns (int leftBound, int rightBound, int top) {
         // Flag for whether puzzle is impossible
         boolean impossible = false;
+        Square square;
 
         // For each column:
         for (int x = leftBound; x < rightBound; x++) {
@@ -57,6 +58,8 @@ public class Filler {
 
             // For each row
             for (int y = top; y < 9; y++) {
+                square = new Square(x, y);
+
                 /*
                 * Remove existing numbers from pen:
                 *
@@ -81,9 +84,9 @@ public class Filler {
                     Integer val = penIt.next();
 
                     // If number is valid
-                    if (puzzle.solver.isValid(val, x, y)) {
+                    if (puzzle.solver.isValid(val, square)) {
                         // Set the current square to the lowest value that is valid.
-                        puzzle.setSquare(x, y, val);
+                        puzzle.setSquare(square, val);
 
                         // Remove the number we just used.
                         penIt.remove();
@@ -127,6 +130,8 @@ public class Filler {
 
                     // For each square in this column.
                     for (int y = top; y < 9; y++) {
+                        square = new Square(x, y);
+
                         // Skip square if it is empty or if we just replaced it (ignore if over certain iteration count)
                         if ((emptySquares.indexOf(y) > -1 && iterations < 20) || (changes.indexOf(puzzle.getSquare(x, y)) > -1 && iterations < 40)) {
                             continue;
@@ -141,12 +146,12 @@ public class Filler {
                             Integer val = penIt.next();
 
                             // If we can swap this number,
-                            if (puzzle.solver.isValid(val, x, y)) {
+                            if (puzzle.solver.isValid(val, square)) {
                                 // Set oldVal to be what the square was before the swap
                                 int oldVal = puzzle.getSquare(x, y);
 
                                 // Swap it
-                                puzzle.setSquare(x, y, val);
+                                puzzle.setSquare(square, val);
 
                                 // Add this to the changes, then remove it from the pen.
                                 changes.add(val);
@@ -161,14 +166,14 @@ public class Filler {
                                     // For each square in the empty list
                                     Iterator<Integer> emptyIt = emptySquares.iterator();
                                     while(emptyIt.hasNext()) {
-                                        Integer square = emptyIt.next();
+                                        Square otherSquare = new Square(x, emptyIt.next());
 
-                                        // If adding the old value to the empty square is valid
-                                        if (puzzle.solver.isValid(oldVal, x, square)) {
+                                        // If adding the old value to the empty otherSquare is valid
+                                        if (puzzle.solver.isValid(oldVal, otherSquare)) {
                                             // Add it
-                                            puzzle.setSquare(x, square, oldVal);
+                                            puzzle.setSquare(otherSquare, oldVal);
 
-                                            // Remove square from empty list
+                                            // Remove otherSquare from empty list
                                             emptyIt.remove();
 
                                             // Set this to 0 to avoid adding it to the pen.
@@ -222,7 +227,7 @@ public class Filler {
                 Collections.shuffle(pen);
 
                 // Set the current square to the first number (random) in pen.
-                puzzle.setSquare(x, y, pen.get(0));
+                puzzle.setSquare(new Square(x, y), pen.get(0));
 
                 // Prevent repeat numbers by removing the one we just used.
                 pen.remove(0);
