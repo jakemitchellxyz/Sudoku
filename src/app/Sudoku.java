@@ -7,20 +7,20 @@ import javafx.stage.Stage;
  * Created by Jake Mitchell on 23 Jul, 2016.
  * License: MIT
  */
-public class Main extends Application {
-    static Stage window;
+public class Sudoku extends Application {
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
-        window = primaryStage;
+    public void start(Stage window) throws Exception {
+        // Give reference variable to change the scene on button presses
+        Scenes.init(window);
 
         // Create Menu Scene
-        Scenes.createScene("MainMenu");
+        Scenes.createScene("Sudoku Menu");
 
         // Create Window
         window.setTitle("Sudoku");
         window.resizableProperty().setValue(false);
-        window.setScene(Scenes.getScene("MainMenu"));
+        window.setScene(Scenes.getScene("Sudoku Menu"));
         window.show();
     }
 

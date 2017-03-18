@@ -1,39 +1,15 @@
-package app;
+package puzzle;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
+import exceptions.UnsolvablePuzzleException;
+
+import java.util.LinkedList;
 import java.util.ListIterator;
 
 /**
  * Created by Jake Mitchell on 8 Sept, 2016.
  * License: MIT
  */
-public class Filler {
-    private SudokuPuzzle puzzle;
-    private ArrayList<Integer> pen = new ArrayList<>();
-
-    /**
-     * Constructor
-     *
-     * @param p Puzzle to fill
-     */
-    Filler (SudokuPuzzle p) {
-        this.puzzle = p;
-    }
-
-    /**
-     * Reset the pen to contain 1-9
-     */
-    private void resetPen () {
-        // empty the array
-        pen.clear();
-
-        // Add all numbers 1-9 to the pen
-        for (int i = 0; i < 9; i++) {
-            pen.add(i, i + 1);
-        }
-    }
+abstract class Filler {
 
     /**
      * Fill columns with numbers.
@@ -41,20 +17,19 @@ public class Filler {
      * @param leftBound left-most column
      * @param rightBound right-most column
      * @param top highest row to start filling numbers in
-     * @return boolean of whether puzzle is impossible
+     * @throws UnsolvablePuzzleException if it cannot place all numbers. Tries again after fail.
      */
-    private boolean fillColumns (int leftBound, int rightBound, int top) {
-        // Flag for whether puzzle is impossible
-        boolean impossible = false;
+    @SuppressWarnings("initialization")
+    private static void fillColumns (Puzzle puzzle, int leftBound, int rightBound, int top) throws UnsolvablePuzzleException {
         Square square;
 
         // For each column:
         for (int x = leftBound; x < rightBound; x++) {
-            // Reset pen to contain 1-9
-            this.resetPen();
+            // Reset pen to contain 1-9 in order
+            Pen pen = new Pen();
 
             // Establish list of empty squares
-            ArrayList<Integer> emptySquares = new ArrayList<>();
+            LinkedList<Integer> emptySquares = new LinkedList<>();
 
             // For each row
             for (int y = top; y < 9; y++) {
@@ -67,43 +42,35 @@ public class Filler {
                 * remove the existing items to avoid duplication.
                 */
                 if(top > 0) {
-                    for (int i = 0; i < top; i++) {
-                        int index = pen.indexOf(puzzle.getSquare(x, i));
-                        if (index != -1) {
-                            pen.remove(index);
-                        }
+                    for (int r = 0; r < top; r++) { // iterate through rows above this one
+                        pen.remove(puzzle.getSquare(x, r)); // remove it from the pen
                     }
                 }
 
                 // Sort the pen lowest-to-highest
-                Collections.sort(pen);
+                pen.sort();
 
                 // For each number in the pen
-                Iterator<Integer> penIt = pen.iterator();
-                while(penIt.hasNext()) {
-                    Integer val = penIt.next();
+                for (int val : pen.iterator()) {
 
                     // If number is valid
-                    if (puzzle.solver.isValid(val, square)) {
+                    if (Solver.isValid(puzzle, val, square)) {
                         // Set the current square to the lowest value that is valid.
                         puzzle.setSquare(square, val);
 
                         // Remove the number we just used.
-                        penIt.remove();
+                        pen.remove(val);
 
-                        // Remove the current square from the empty list if it is in the empty list
+                        // Remove the current square from the empty list if it exists
                         int index = emptySquares.indexOf(y);
-                        if (index > -1) {
-                            emptySquares.remove(index);
-                        }
+                        if (index > -1) emptySquares.remove(index);
 
                         // Stop iterating
                         break;
                     } else {
                         // add square to empty list if not present
-                        if (emptySquares.indexOf(y) == -1) {
+                        if (emptySquares.indexOf(y) == -1)
                             emptySquares.add(y);
-                        }
                     }
                 }
             }
@@ -112,20 +79,19 @@ public class Filler {
             * If we still have items in the pen,
             * try to replace items to put them where they go.
             */
-            if(pen.size() > 0) {
+            if(!pen.isEmpty()) {
                 // Record changes to avoid looping the same change.
-                ArrayList<Integer> changes = new ArrayList<>();
+                LinkedList<Integer> changes = new LinkedList<>();
 
                 // Record number of iterations over the column
                 int iterations = 0;
 
                 // While we still have items in the pen.
-                while (pen.size() > 0) {
+                while (!pen.isEmpty()) {
 
                     // If we iterate 1000 times, declare the puzzle impossible
                     if (iterations > 1000) {
-                        impossible = true;
-                        break;
+                        throw new UnsolvablePuzzleException();
                     }
 
                     // For each square in this column.
@@ -138,15 +104,12 @@ public class Filler {
                         }
 
                         // Reorder pen, smallest to largest.
-                        Collections.sort(pen);
+                        pen.sort();
 
                         // For each number in the pen:
-                        ListIterator<Integer> penIt = pen.listIterator();
-                        while (penIt.hasNext()) {
-                            Integer val = penIt.next();
-
+                        for (int val : pen.iterator()) {
                             // If we can swap this number,
-                            if (puzzle.solver.isValid(val, square)) {
+                            if (Solver.isValid(puzzle, val, square)) {
                                 // Set oldVal to be what the square was before the swap
                                 int oldVal = puzzle.getSquare(x, y);
 
@@ -155,21 +118,21 @@ public class Filler {
 
                                 // Add this to the changes, then remove it from the pen.
                                 changes.add(val);
-                                penIt.remove();
+                                pen.remove(val);
 
                                 // Try to insert the old value to an empty square before replacing another.
                                 // If empty list is not empty
                                 if (emptySquares.size() > 0) {
                                     // Sort the empty list
-                                    Collections.sort(emptySquares);
+                                    emptySquares.sort(null);
 
                                     // For each square in the empty list
-                                    Iterator<Integer> emptyIt = emptySquares.iterator();
+                                    ListIterator<Integer> emptyIt = emptySquares.listIterator();
                                     while(emptyIt.hasNext()) {
                                         Square otherSquare = new Square(x, emptyIt.next());
 
                                         // If adding the old value to the empty otherSquare is valid
-                                        if (puzzle.solver.isValid(oldVal, otherSquare)) {
+                                        if (Solver.isValid(puzzle, oldVal, otherSquare)) {
                                             // Add it
                                             puzzle.setSquare(otherSquare, oldVal);
 
@@ -188,7 +151,7 @@ public class Filler {
                                 // If we didn't add the old value to an empty square
                                 if (oldVal > 0) {
                                     // Add it to the pen
-                                    penIt.add(oldVal);
+                                    pen.add(oldVal);
                                 }
                             }
                         }
@@ -199,9 +162,6 @@ public class Filler {
                 }
             }
         }
-
-        // Return the possibility flag
-        return impossible;
     }
 
     /**
@@ -212,25 +172,20 @@ public class Filler {
      * @param bottomBound bottom edge of box
      * @param leftBound left edge of box
      */
-    private void fillBox (int topBound, int rightBound, int bottomBound, int leftBound) {
+    private static void fillBox (Puzzle puzzle, int topBound, int rightBound, int bottomBound, int leftBound) {
         /*
         * All 9 numbers are present in box,
         * therefore, it is only reset once.
+        * Pen is in random order.
         */
-        this.resetPen();
+        Pen pen = new Pen(true);
 
         // For each column.
         for (int x = leftBound; x < rightBound; x++) {
             // For each row.
             for (int y = topBound; y < bottomBound; y++) {
-                // Shuffle pen to randomize order.
-                Collections.shuffle(pen);
-
-                // Set the current square to the first number (random) in pen.
-                puzzle.setSquare(new Square(x, y), pen.get(0));
-
-                // Prevent repeat numbers by removing the one we just used.
-                pen.remove(0);
+                // Set the current square to the first number (random) in pen and remove it.
+                puzzle.setSquare(new Square(x, y), pen.next());
             }
         }
     }
@@ -238,18 +193,23 @@ public class Filler {
     /**
      * Generate a completed puzzle.
      */
-    public void fillPuzzle () {
+    static Puzzle filledPuzzle () {
         // Reset puzzle to all 0s
-        puzzle.resetPuzzle();
+        Puzzle puzzle = new Puzzle();
 
         // Fill in the first box so we have somewhere to start.
-        this.fillBox(0, 3, 3, 0);
+        fillBox(puzzle, 0, 3, 3, 0);
 
         // Fill in the remaining columns
         // If either function flags impossible,
-        if(this.fillColumns(0, 3, 3) || this.fillColumns(3, 9, 0)) {
+        try {
+            fillColumns(puzzle, 0, 3, 3); // fill left column
+            fillColumns(puzzle, 3, 9, 0); // fill right two columns
+
+            return puzzle;
+        } catch (UnsolvablePuzzleException e) {
             // Try again.
-            this.fillPuzzle();
+            return filledPuzzle();
         }
     }
 }

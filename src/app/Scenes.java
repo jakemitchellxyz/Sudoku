@@ -3,8 +3,17 @@ package app;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 
 import java.util.HashMap;
 
@@ -12,8 +21,15 @@ import java.util.HashMap;
  * Created by Jake Mitchell on 23 Jul, 2016.
  * License: MIT
  */
-class Scenes {
-    private static HashMap<String, Scene> scenes = new HashMap<>();
+@SuppressWarnings("initialization")
+abstract class Scenes {
+    private static Stage stage;
+    private static HashMap<String, Scene> scenes;
+
+    static void init(Stage window) {
+        stage = window;
+        scenes = new HashMap<>();
+    }
 
     static Scene getScene(String title) {
         return scenes.get(title);
@@ -21,13 +37,12 @@ class Scenes {
 
     static void createScene(String title) {
         BorderPane layout = new BorderPane();
-
-        // Game Menu
+        // GameLogic Menu
         Menu menuMenu = new Menu("_Menu");
 
-        // Back to Main Menu
-        MenuItem mainMenu = new MenuItem("Back to Main Menu");
-        mainMenu.setOnAction(e -> Main.window.setScene(Scenes.getScene("MainMenu")));
+        // Back to Sudoku Menu
+        MenuItem mainMenu = new MenuItem("Back to Sudoku Menu");
+        mainMenu.setOnAction(e -> stage.setScene(Scenes.getScene("MainMenu")));
         menuMenu.getItems().add(mainMenu);
 
         menuMenu.getItems().add(new SeparatorMenuItem());
@@ -37,7 +52,7 @@ class Scenes {
         exit.setOnAction(e -> Platform.exit());
         menuMenu.getItems().add(exit);
 
-        // Game Menu
+        // GameLogic Menu
         Menu gameMenu = new Menu("_Game");
 
         // Reset Board
@@ -45,34 +60,34 @@ class Scenes {
         resetBoard.setOnAction(e -> GameLogic.resetPuzzle());
         gameMenu.getItems().add(resetBoard);
 
-        // New Game Menu
+        // New GameLogic Menu
         Menu newGame = new Menu("New _Puzzle");
 
         MenuItem easy = new MenuItem("_Easy");
         easy.setOnAction(e -> {
             GameLogic.createPuzzle(0);
-            Scenes.createScene("Game");
-            Main.window.setScene(Scenes.getScene("Game"));
+            Scenes.createScene("GameLogic");
+            stage.setScene(Scenes.getScene("GameLogic"));
         });
 
         MenuItem medium = new MenuItem("Me_dium");
         medium.setOnAction(e -> {
             GameLogic.createPuzzle(1);
-            Scenes.createScene("Game");
-            Main.window.setScene(Scenes.getScene("Game"));
+            Scenes.createScene("GameLogic");
+            stage.setScene(Scenes.getScene("GameLogic"));
         });
 
         MenuItem hard = new MenuItem("_Hard");
         hard.setOnAction(e -> {
             GameLogic.createPuzzle(2);
-            Scenes.createScene("Game");
-            Main.window.setScene(Scenes.getScene("Game"));
+            Scenes.createScene("GameLogic");
+            stage.setScene(Scenes.getScene("GameLogic"));
         });
 
         newGame.getItems().addAll(easy, medium, hard);
         gameMenu.getItems().add(newGame);
 
-        if (title == "MainMenu") {
+        if (title.equals("MainMenu")) {
             // Disable Options
             mainMenu.setDisable(true);
             resetBoard.setDisable(true);
@@ -85,7 +100,7 @@ class Scenes {
             // Layout
             layout.setCenter(centerMenu);
 
-        } else if (title == "Game") {
+        } else if (title.equals("GameLogic")) {
             // Enable Options
             mainMenu.setDisable(false);
             resetBoard.setDisable(false);
@@ -95,9 +110,9 @@ class Scenes {
             puzzle.setPadding(new Insets(30, 25, 0, 30));
 
             // For each row (boxes)
-            for (int i = 1; i < 4; i++) {
+            for (int i = 1; i <= 3; i++) {
                 // For each column (boxes)
-                for (int j = 1; j < 4; j++) {
+                for (int j = 1; j <= 3; j++) {
                     // For each row (squares)
                     for (int y = (i * 3) - 3; y < (i * 3); y++) {
                         // For each column (squares)
@@ -107,8 +122,8 @@ class Scenes {
                             square.setMaxSize(50, 50);
                             square.getStyleClass().add("square");
 
-                            int bottom = (y == (i * 3) - 1) ? 5 : 0;
-                            int right = (x == (j * 3) - 1) ? 5 : 0;
+                            int bottom = (y == (i * 3) - 1) ? 5 : 0; // add padding if last element
+                            int right = (x == (j * 3) - 1) ? 5 : 0; // add padding if last element
 
                             GridPane.setMargin(square, new Insets(0, right, bottom, 0));
                             GridPane.setConstraints(square, x, y);
@@ -142,7 +157,7 @@ class Scenes {
             controls.getChildren().add(pencil);
 
             Button home = new Button("Return to Home");
-            home.setOnAction(e -> Main.window.setScene(Scenes.getScene("MainMenu")));
+            home.setOnAction(e -> stage.setScene(Scenes.getScene("MainMenu")));
             controls.getChildren().add(home);
 
             layout.setCenter(puzzle);

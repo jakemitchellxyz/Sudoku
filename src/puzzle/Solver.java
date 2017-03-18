@@ -1,4 +1,6 @@
-package app;
+package puzzle;
+
+import exceptions.UnsolvablePuzzleException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,9 +11,10 @@ import java.util.Iterator;
  * Logical Assistance from Koushul Ramjattun.
  * License: MIT
  */
-public class Solver {
-    private SudokuPuzzle puzzle;
-    private SudokuPuzzle tempPuzzle;
+@SuppressWarnings("initialization")
+class Solver {
+    private Puzzle puzzle;
+    private Puzzle tempPuzzle;
     private int difficulty;
     private boolean solvable = true;
 
@@ -21,12 +24,12 @@ public class Solver {
     /**
      * Constructor
      *
-     * @param p Puzzle to solve
-     * @param diff Difficulty to make the puzzle
+     * @param puzzle Puzzle to solve
+     * @param difficulty Difficulty to make the puzzle
      */
-    Solver (SudokuPuzzle p, int diff) {
-        this.puzzle = p;
-        this.difficulty = diff;
+    Solver (Puzzle puzzle, int difficulty) {
+        this.puzzle = puzzle;
+        this.difficulty = difficulty;
     }
 
     /**
@@ -34,18 +37,19 @@ public class Solver {
      *
      * @return int of difficulty
      */
-    public int getDifficulty() {
+    int getDifficulty() {
         return this.difficulty;
     }
 
     /**
      * Boolean of whether a number is valid to insert.
      *
+     * @param puzzle puzzle to query
      * @param num value to query
      * @param square Square object of location
      * @return boolean of validity
      */
-    public boolean isValid (int num, Square square) {
+    static boolean isValid (Puzzle puzzle, int num, Square square) {
         // Check if number exists in column.
         for (int i = 0; i < square.getY(); i++) {
             if(puzzle.getSquare(square.getX(), i) == num) {
@@ -61,8 +65,8 @@ public class Solver {
         }
 
         // Check if in box
-        for (Square other : square.getAllInBox()) {
-            if (this.puzzle.getSquare(other) == num) {
+        for (Square other : square.getAllInBox()) { // get all in this box
+            if (puzzle.getSquare(other) == num) { // see if any of them have this number
                 return false;
             }
         }
@@ -75,14 +79,16 @@ public class Solver {
      * Search through the notes to find squares with exactly one note.
      *
      * @return [ x, y, val ]
+     * @throws UnsolvablePuzzleException if it cannot solve the puzzle
      */
-    private Square scanner () throws PuzzleUnsolvableException {
+    private Square scanner() throws UnsolvablePuzzleException {
+        // sorts squares by number of notes available (used to find items with one note or X-Wing, XY-Wing)
         HashMap<Integer, ArrayList<Square>> possibleSquares = new HashMap<Integer, ArrayList<Square>>();
 
         ArrayList<Integer> theseNotes;
         Square square;
 
-        // For each empty square
+        // Sort empty squares by # of notes
         Iterator<Square> emptyIt = this.emptySquares.iterator();
         while(emptyIt.hasNext()) {
             square = emptyIt.next();
@@ -96,7 +102,7 @@ public class Solver {
                 possibleSquares.get(theseNotes.size()).add(square);
             } else {
                 // Otherwise, create a new list
-                ArrayList<Square> list = new ArrayList<Square>();
+                ArrayList<Square> list = new ArrayList<>();
                 list.add(square);
 
                 possibleSquares.put(theseNotes.size(), list);
@@ -107,31 +113,8 @@ public class Solver {
         if(possibleSquares.containsKey(1) && possibleSquares.get(1).size() > 0) {
             // Return the fuck out of it
             return possibleSquares.get(1).get(0);
-        } else {
-            // Impossiblity flag
-            boolean impossible = false;
-
-            // For each # of notes in a square,
-            for (ArrayList<Square> squaresWithNotes : possibleSquares.values()) {
-                // For each square,
-                for (Square sq : squaresWithNotes) {
-                    // If a square exists,
-                    if (sq != null) {
-                        //
-                        impossible = true;
-                    }
-                }
-            }
-
-            // If we have any squares with more than one note,
-            if(impossible) {
-                // Throw an error to exit back to the solver and exit the solver
-                throw new PuzzleUnsolvableException("Puzzle is not solvable.");
-            } else {
-                // Otherwise, we have completed the puzzle
-                return null;
-            }
         }
+        return new Square(1, 1);
     }
 
     /**
@@ -187,10 +170,10 @@ public class Solver {
 
             // If square is empty
             if (this.tempPuzzle.getSquare(square) == 0) {
-                // Add all numbers 1-9 to the notes
-                for (int note = 1; note < 10; note++) {
-                    if (this.isValid(note, square)) {
-                        // If this square has already been set,
+                // Add all numbers 1-9 to the notes if appropriate
+                for (int note = 1; note <= 9; note++) {
+                    if (isValid(puzzle, note, square)) {
+                        // If this square's notes array already exists,
                         if (notes.containsKey(square)) {
                             // Add to it
                             notes.get(square).add(note);
@@ -216,7 +199,7 @@ public class Solver {
 
         try {
             square = this.scanner();
-        } catch (PuzzleUnsolvableException e) {
+        } catch (UnsolvablePuzzleException e) {
             // Flag the puzzle impossible
             this.solvable = false;
             return;
@@ -245,8 +228,7 @@ public class Solver {
      */
     private boolean isSolved () {
         // Return false if we've been flagged impossible
-        if (!this.solvable)
-            return false;
+        if (!this.solvable) return false;
 
         int total = 0;
 
@@ -269,17 +251,17 @@ public class Solver {
      * @param removedSquares list of squares that have been removed
      * @return whether or not the puzzle has been solved
      */
-    public boolean solve (ArrayList<Square> removedSquares) {
-        this.emptySquares = removedSquares;
-        this.tempPuzzle = new SudokuPuzzle(this.puzzle);
+    boolean solve (ArrayList<Square> removedSquares) {
+        emptySquares = removedSquares;
+        tempPuzzle = new Puzzle(puzzle);
 
         // Determine and insert all notes into all empty squares
-        this.addAllNotes();
+        addAllNotes();
 
         // Insert the appropriate numbers into the puzzle and update notes until solved
-        this.insertSquares();
+        insertSquares();
 
         // Check if the puzzle has been solved and return that
-        return this.isSolved();
+        return isSolved();
     }
 }

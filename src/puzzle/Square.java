@@ -1,13 +1,13 @@
-package app;
+package puzzle;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 /**
  * Created by Jake Mitchell on 15 Sept, 2016.
  * License: MIT
  */
-public class Square {
+class Square {
     private int x;
     private int y;
     private int box;
@@ -22,7 +22,7 @@ public class Square {
             // For each row
             for(int y = 0; y < 9; y++) {
                 // Magical function with help from Yunze li
-                box = (int) (Math.ceil((x + 1) / 3.0) + 3 * Math.ceil((y + 1) / 3.0) - 4);
+                box = (int) Math.round(Math.ceil((x + 1) / 3.0) + 3 * Math.ceil((y + 1) / 3.0) - 4);
 
                 // Insert coordinate and box into HashMap
                 BOXES.put(new Square(x, y), box);
@@ -49,8 +49,8 @@ public class Square {
      *
      * @return ArrayList of the points
      */
-    public ArrayList<Square> getAllInBox() {
-        ArrayList<Square> pointsInBox = new ArrayList<>();
+    LinkedList<Square> getAllInBox() {
+        LinkedList<Square> pointsInBox = new LinkedList<>();
 
         for(Square square : BOXES.keySet()) {
             if (BOXES.get(square) == this.box) {
@@ -67,7 +67,7 @@ public class Square {
      * @param other square to query
      * @return whether the square affects this one
      */
-    public boolean affects (Square other) {
+    boolean affects (Square other) {
         return other.getX() == this.getX() // If in this column or
                 || other.getY() == this.getY() // If in this row or
                 || BOXES.get(other) == this.box; // If in this box
@@ -78,7 +78,7 @@ public class Square {
      *
      * @return x value of square
      */
-    public int getX() {
+    int getX() {
         return this.x;
     }
 
@@ -87,18 +87,18 @@ public class Square {
      *
      * @return y value of square
      */
-    public int getY() {
+    int getY() {
         return this.y;
     }
 
     /**
      * Customize toString method.
      *
-     * @return "[x, y]"
+     * @return "Square[ x, y ]"
      */
     @Override
     public String toString() {
-        return "[" + this.getX() + ", " + this.getY() + "]";
+        return "Square[ " + this.getX() + ", " + this.getY() + " ]";
     }
 
     /**
@@ -110,8 +110,7 @@ public class Square {
     @Override
     public boolean equals(Object other) {
         // Ensure other is another Square
-        if (!(other instanceof Square))
-            return false;
+        if (!(other instanceof Square)) return false;
 
         // Set the type to a square
         Square otherSquare = (Square) other;

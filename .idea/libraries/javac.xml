@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="javac">
+    <CLASSES>
+      <root url="jar://C:/CheckerFramework/checker/dist/javac.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
